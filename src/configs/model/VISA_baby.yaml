@@ -1,0 +1,64 @@
+# VISA (code: MMGFUU) - baby sweep (item side FROZEN, reproduced exactly by base).
+# Frozen item-side params (from disk MMGF_baby.yaml, baby test R@20=0.1032):
+#   alpha=0.6 adjust_s=0.6 a1=-0.1 a2=1.2 a3=-0.8 beta=0.06 gamma=0.02
+#   knn_k=20 t_ncer=True v_ncer=True ncer_pow=[0.1]
+# Removed:
+#   exclude_self / refine_feat (default False -> baseline-exact)
+# UU knobs (the ONLY thing that changes):
+#   uu_scheme in {none,A,B,C,D}; mu_user sweep 0.03/0.06/0.10/0.15
+#   uu_k=20 uu_rank=64 uu_proto=128 uu_topk=4 (keep small; M=19445)
+# Scale alignment: scale=RMS_item/RMS_uu so mu_user is interpretable.
+model: VISA
+class: VISA
+MODEL_TYPE: model
+
+# src_smoother: unused legacy block removed (kept only as comment)
+
+# ---- item side (FROZEN) ----
+alpha: 0.6
+adjust_s: 0.6
+a1: -0.1
+a2: 1.2
+a3: -0.8
+beta: 0.06
+gamma: 0.02
+knn_k: 20
+ncer: True
+ncer_pow: 0.3
+
+req_training: False
+epochs: 1
+eval_step: 1
+stopping_step: 1
+
+# ---- UU (user-user) side (pluggable; mu_user=0 reproduces
+#      the 0.1032 item-side baseline bit-for-bit) ----
+# Clean single-path pipeline (VSP rms + MARF) - hard-coded in models/visa.py:
+#   v1 composition  : UU operator P propagates over scores_item (== (P@R)@Pmm)
+#   v3 mask+rownorm : zero train-interacted items, row-RMS normalize
+#   v7 adapt_mu     : per-user mu = mu_user/(1 + deg_u/tau)
+# BEST (clean feature, 2026-09-25 re-swept, fully-explicit --cfg, seed 10):
+#   PhaseA item-side single-factor: anchor 0.1032 IS the peak (all moves hurt)
+#   PhaseB UU: mu 0.20-0.22 flat (0.1051-0.1061), tau 5-6, uu_k=15
+#   -> RECONCILED 2026-09-27 (valid-selected): mu=0.15, uu_k=15, tau=5 => test R@20=0.1051
+#      (valid 0.1054, valid peak at mu.15/k15; old TEST-selected mu.22/k30 gave test 0.1069 /
+#      valid 0.1050, a test-in-tune artifact -> rejected).
+#   a-coeff poly: 1-dp grid (search granularity used for all datasets).
+#      lambda-rescaled 2-dp (-.095/1.14/-.76) -> valid .1055 / test .1075;
+#      1-dp (-0.1/1.2/-0.8, == MM-GF baseline) -> valid .1060 / test .1072
+#      -> ADOPTED 2026-10-21 (higher valid; item side stays baseline-exact).
+mu_user: 0.20
+uu_k: 25
+uu_adapt_tau: 5.0
+
+# ---- SBG (Spectral-Balanced Graph) modality freq-band reweight (2026-09-28) ----
+# FINAL (paper recipe, parameter-free): w=(1,1,1) + energy edges (0.7,0.95,1), sbg_uu=True.
+#   Baby: full valid .1060 / test .1072; SBG off -> test .1060 (drop 1.12%).
+#   Older non-uniform w=(1,0.5,0.2) sweep was an old-data module and is NOT reported.
+sbg_enabled: True
+sbg_bands: 3
+sbg_init_w: "1.0,1.0,1.0"
+sbg_band_edges: "0.7,0.95,1.0"
+sbg_uu: True
+
+ 

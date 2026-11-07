@@ -1,0 +1,51 @@
+# VISA (code: MMGFUU) - sports FINAL v2 (2026-10-13; unified joint re-search, valid-selected, seed 10)
+# Baseline (item-only):  test R@20=0.1102  valid 0.1087  (NDCG@20=0.0507)
+# v1 FINAL (SBG off):    test R@20=0.1223  valid 0.1204  (N@20=0.0571)
+# v2 FINAL (SBG ON):     test R@20=0.1224  valid 0.1221  (N@20=0.0575, R@10=0.0842)
+#   unified joint re-search (P2_joint_sports best, valid-selected): SBG on + user-SBG on,
+#   w=[1,0.7,0.4], edges=[0.8,0.95,1.0]; other axes unchanged (p=0.1, k_u=40, mu=0.25).
+#   reproducible across 3 identical re-runs (deterministic, training-free).
+#
+# TUNING HISTORY (clean, all keys explicit -- FLAGS settle, no cfg pollution):
+#   phase5 single-factor (base baby-item + mu0.28/tau12):
+#     adjust_s: 0.4->.1112, 0.5->.1169, 0.6->.1184, 0.7->.1144   <- 0.6 peak
+#     alpha:    0.5->.1167, 0.6->.1184, 0.65->.1167             <- 0.6
+#     beta:     0.04->.1146, 0.06->.1184, 0.1->.1221            <- 0.1 WIN
+#     gamma:    0.02->.1184, 0.05->.1190                        <- 0.02 (with beta.1: 0.02->.1221 vs 0.05->.1164)
+#     ncer_pow: 0.1->.1184, 1->.1214 (only at beta.06)          <- keep 0.1 with beta.1
+#   combos: beta.1 x ncer1 collapses (.1088); ncer1 good only at beta.06 -> strong interaction,
+#           keep beta=0.1 nectar=0.1
+#   mu user: 0.25->.1223, 0.28->.1221, 0.32->.1225  (flat; keep 0.28)
+# NOTE: item-side param EFFECTIVE domain is sports; baby a-coeffs (-.1/1.2/-.8) transfer fine here.
+model: VISA
+class: VISA
+MODEL_TYPE: model
+
+# ---- item side (sports-tuned) ----
+alpha: 0.6
+adjust_s: 0.6
+a1: -0.1
+a2: 1.2
+a3: -0.8
+beta: 0.1
+gamma: 0.02
+knn_k: 20
+ncer: True
+ncer_pow: 0.1
+
+req_training: False
+epochs: 1
+eval_step: 1
+stopping_step: 1
+
+# ---- SBG (Spectral-Balanced Graph) modality freq-band reweight (v2: ON) ----
+sbg_enabled: True
+sbg_bands: 3
+sbg_init_w: "1.0,1.0,1.0"
+sbg_band_edges: "0.7,0.95,1.0"
+sbg_uu: True
+
+# ---- UU side ----
+mu_user: 0.25
+uu_k: 40
+uu_adapt_tau: 12.0

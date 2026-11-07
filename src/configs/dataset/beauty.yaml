@@ -1,0 +1,20 @@
+# Common Features
+USER_ID_FIELD: userID
+ITEM_ID_FIELD: itemID
+TIME_FIELD: timestamp
+
+filter_out_cod_start_users: True
+
+inter_file_name: 'beauty.inter'
+
+# name of features
+vision_feature_file: 'image_feat.npy'
+text_feature_file: 'text_feat.npy'
+
+field_separator: "\t"
+
+# 学生模态索引配置（MMRec 数据目录下）
+meta_file: 'meta-beauty.csv'
+image_cache_dir: '.image_cache'
+tokenizer_path: '/home/server/.cache/modelscope/hub/models/openai-mirror/clip-vit-base-patch16'
+max_txt_len: 64

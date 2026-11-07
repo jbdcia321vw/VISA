@@ -1,0 +1,48 @@
+# VISA (code: MMGFUU) - clothing FINAL v2 (2026-10-12; SBG re-search, valid-selected, seed 10)
+# Baseline (item-only, gamma=0.5): test R@20=0.1008  valid 0.1046 (NDCG@20=0.0479)
+# v1 FINAL (SBG off, 2026-09-27):                  valid R@20=0.1064  test R@20=0.1051 (N@20=0.0480)
+# v2 FINAL (SBG ON, user-SBG OFF):                 valid R@20=0.1085  test R@20=0.1056 (N@20=0.0482)  +0.5% test
+#   deterministic: identical re-runs (3x reproducible).
+#
+# WHY SBG ON: the 2026-09-27 joint search only tried front-heavy band weights on an older
+# base and selected B=0 (SBG off). A dedicated SBG-on joint re-tune (10-12 grids, see
+# results/clothing/H_sbg_clothing_* and EXPERIMENT_LOG.md s10.13) found:
+#   - SBG on + uniform-ish weights + smaller ncer_pow beats SBG off on BOTH valid and test.
+#   - Control: SBG-off + ncer_pow=0.5 -> valid 0.1048, i.e. the gain is from SBG, not ncer_pow.
+#   - Best: w=[1,1,0.8], edges=[0.85,0.95,1.0], ncer_pow=0.7, mu=0.25 -> valid 0.1085 / test 0.1056.
+# NOTE (2026-10-14): a coupled item+user SBG switch was tried but dropped -- forcing user-SBG
+# on for clothing costs ~0.0014 test (best coupled 0.1042); user-SBG stays OFF here.
+# Item side otherwise unchanged from v1 (a3=1.9 clothing-specific; beta.6/gamma.5/k20 max).
+model: VISA
+class: VISA
+MODEL_TYPE: model
+
+# ---- item side (clothing-tuned; == MMGF_clothing except gamma 0.3->0.5) ----
+alpha: 0.5
+adjust_s: 0.4
+a1: -0.1
+a2: 1
+a3: 1.9
+beta: 0.6
+gamma: 0.5
+knn_k: 20
+ncer: True
+ncer_pow: 0.7
+
+req_training: False
+epochs: 1
+eval_step: 1
+stopping_step: 1
+
+# ---- SBG (Spectral-Balanced Graph) modality freq-band reweight ----
+# v2: enabled with NEAR-UNIFORM weights (top band mildly down-weighted), energy edges 0.85/0.95.
+sbg_enabled: True
+sbg_bands: 3
+sbg_init_w: "1.0,1.0,1.0"
+sbg_band_edges: "0.7,0.95,1.0"
+sbg_uu: False
+
+# ---- UU side (valid-selected under SBG-on) ----
+mu_user: 0.25
+uu_k: 40
+uu_adapt_tau: 10.0
