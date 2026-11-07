@@ -16,5 +16,5 @@ field_separator: "\t"
 # 学生模态索引配置（MMRec 数据目录下）
 meta_file: 'meta-beauty.csv'
 image_cache_dir: '.image_cache'
-tokenizer_path: '/home/server/.cache/modelscope/hub/models/openai-mirror/clip-vit-base-patch16'
+tokenizer_path: 'openai/clip-vit-base-patch16'
 max_txt_len: 64
